@@ -1,45 +1,82 @@
-from django.shortcuts import render
-from django.http import JsonResponse
 from .models import Employee
-import json
+from .serializers import EmployeeSerializer
+from rest_framework.decorators import api_view 
+from rest_framework.response import Response
+
 
 # Create your views here.
 
-
+@api_view(["GET", "POST"])
 def employee_list(request):
 
     if request.method == "GET":
         employees = Employee.objects.all()
 
-        data = []
+        serializer = EmployeeSerializer(employees, many=True)
 
-        for employee in employees:
-            data.append({
-                "id": employee.id,
-                "name": employee.name,
-                "email": employee.email,
-                "age": employee.age,
-                "salary": str(employee.salary),
-            })
 
-        return JsonResponse(data, safe=False)
+        return Response(serializer.data)
+
+        
 
     if request.method == "POST":
-        data = json.loads(request.body)
+       serializer = EmployeeSerializer(data=request.data)
 
-        employee = Employee.objects.create(
-            name=data["name"],
-            email=data["email"],
-            age=data["age"],
-            salary=data["salary"]
+       if serializer.is_valid():
+            serializer.save()
+
+            return Response(serializer.data, status=201)
+
+       return Response(serializer.errors, status=400)
+
+    
+@api_view(["GET", "PUT", "PATCH", "DELETE"])
+def employee_detail(request, pk):
+
+    try:
+        employee = Employee.objects.get(pk=pk)
+    except Employee.DoesNoteExist:
+        return Response(
+            {"error": "Employee not found"},
+            ststus=404
         )
 
-        return JsonResponse({
-            "id": employee.id,
-            "name": employee.name,
-            "email": employee.email,
-            "age": employee.age,
-            "salary": str(employee.salary),
-        }, status=201)
+    if  request.method == "GET":
+        serializer = EmployeeSerializer(employee)
+
+        return Response(serializer.data)
+
+    if request.method == "PUT":
+        serializer = EmployeeSerializer(
+            employee, data=request.data
+        )
+
+        if serializer.is_valid():
+            serializer.save()
+
+            return Response(serializer.data)
+        return Response(serializer.errors, status=400)
+
+    if request.method == "PATCH":
+        serializer = EmployeeSerializer(
+            employee,
+            data=request.data,
+            partial=True
+        )
+
+        if serializer.is_valid():
+            serializer.save()
+
+            return Response(serializer.data)
+
+        return Response(serializer.errors,status=400)
+
+    if request.method == "DELETE":
+        employee.delete()
+
+        return Response(status=204)
+
+
+
 
     
