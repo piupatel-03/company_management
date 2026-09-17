@@ -1,151 +1,41 @@
 from .models import Employee, Department
 from .serializers import EmployeeSerializer, DepartmentSerializer
-from rest_framework.decorators import api_view 
-from rest_framework.response import Response
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter, OrderingFilter
+from rest_framework.generics import (ListCreateAPIView,RetrieveUpdateDestroyAPIView)
 
 
 # Create your views here.
+class EmployeeListCreateView(ListCreateAPIView):
+    queryset = Employee.objects.all()
+    serializer_class = EmployeeSerializer
 
-@api_view(["GET", "POST"])
-def employee_list(request):
+    filter_backends = [SearchFilter,
+                       DjangoFilterBackend,OrderingFilter]
 
-    if request.method == "GET":
-        employees = Employee.objects.all()
+    search_fields = ["name","email"]
 
-        serializer = EmployeeSerializer(employees, many=True)
+    filterset_fields = ["age", "salary", "department"]
 
+    ordering_fields = ["name", "age", "salary"]
 
-        return Response(serializer.data)
-
-        
-
-    if request.method == "POST":
-       serializer = EmployeeSerializer(data=request.data)
-
-       if serializer.is_valid():
-            serializer.save()
-
-            return Response(serializer.data, status=201)
-
-       return Response(serializer.errors, status=400)
+class EmployeeDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = Employee.objects.all()
+    serializer_class = EmployeeSerializer
 
 
-
-    
-@api_view(["GET", "PUT", "PATCH", "DELETE"])
-def employee_detail(request, pk):
-
-    try:
-        employee = Employee.objects.get(pk=pk)
-    except Employee.DoesNotExist:
-        return Response(
-            {"error": "Employee not found"},
-            status=404
-        )
-
-    if  request.method == "GET":
-        serializer = EmployeeSerializer(employee)
-
-        return Response(serializer.data)
-
-    if request.method == "PUT":
-        serializer = EmployeeSerializer(
-            employee, data=request.data
-        )
-
-        if serializer.is_valid():
-            serializer.save()
-
-            return Response(serializer.data)
-        return Response(serializer.errors, status=400)
-
-    if request.method == "PATCH":
-        serializer = EmployeeSerializer(
-            employee,
-            data=request.data,
-            partial=True
-        )
-
-        if serializer.is_valid():
-            serializer.save()
-
-            return Response(serializer.data)
-
-        return Response(serializer.errors,status=400)
-
-    if request.method == "DELETE":
-        employee.delete()
-
-        return Response(status=204)
+class DepartmentListCreateView(ListCreateAPIView):
+    queryset = Department.objects.all()
+    serializer_class = DepartmentSerializer
 
 
-@api_view(["GET", "POST"])
-def department_list(request):
-
-    if request.method == "GET":
-
-
-        departments = Department.objects.all()
-        serializer = DepartmentSerializer(
-            departments, many = True
-        )
-
-        return Response(serializer.data)
-
-    if request.method == "POST":
-        serializer = DepartmentSerializer(data=request.data)
-
-        if serializer.is_valid():
-            serializer.save()
-
-            return Response(serializer.data, status=201)
-
-        return Response(serializer.errors, status=400)
-    
-
-@api_view(["GET", "PUT", "PATCH", "DELETE"])
-def department_detail(request, pk):
-
-    try:
-        department = Department.objects.get(pk=pk)
-    except Department.DoesNotExist:
-        return Response(
-            {"error": "Department not found"},
-            status=404
-        )
-
-    if request.method == "GET":
-        serializer = DepartmentSerializer(department)
-        return Response(serializer.data)
+class DepartmentDetailView(RetrieveUpdateDestroyAPIView):
+    queryset = Department.objects.all()
+    serializer_class = DepartmentSerializer
 
 
-    if request.method == "PUT":
-        serializer = DepartmentSerializer(
-            department, data=request.data
-        )
 
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
 
-        return Response(serializer.errors, status=400)
-
-    if request.method == "PATCH":
-        serializer = DepartmentSerializer(
-            department,
-            data=request.data,
-            partial=True
-        )
-
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-
-        return Response(serializer.errors,status=400)
-
-    if request.method == "DELETE":
-        department.delete()
-        return Response(status=204)
 
     
     

@@ -1,10 +1,13 @@
+from rest_framework.routers import DefaultRouter
 from django.urls import path
-from .views import (employee_list, 
-        employee_detail,department_list,department_detail)
+from .views import (EmployeeListCreateView, EmployeeDetailView,
+                    DepartmentListCreateView, DepartmentDetailView)
 
 urlpatterns = [
-    path("employees/", employee_list),
-    path("employees/<int:pk>/", employee_detail), 
-    path ("departments/", department_list),  
-    path("departments/<int:pk>/", department_detail),
+    path("employees/", EmployeeListCreateView.as_view()),
+    path("employees/<int:pk>/", EmployeeDetailView.as_view()),
+    path("departments/", DepartmentListCreateView.as_view()),
+    path("departments/<int:pk>/", DepartmentDetailView.as_view()),
+
 ]
+   
